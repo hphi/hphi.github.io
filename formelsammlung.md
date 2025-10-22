@@ -4,8 +4,6 @@ author: "von und für Jaron, Josua, Samuel, Yael, Marenka & Heiko Philippin"
 output: html_document
 ---
 
-::: {style="text-align: left;"}
-
 ## Bruchrechnen
 
 ### 1. Grundbegriffe
@@ -19,11 +17,13 @@ output: html_document
 
 #### 2.1. Addition und Subtraktion
 
--   **Gleiche Nenner**: $$
+-   **Gleiche Nenner**:
+    $$
     \frac{a}{c} + \frac{b}{c} = \frac{a + b}{c}
     $$
 
--   **Ungleiche Nenner**: $$
+-   **Ungleiche Nenner**:
+    $$
     \frac{a}{c} + \frac{b}{d} = \frac{a \cdot d + b \cdot c}{c \cdot d}
     $$
 
@@ -99,4 +99,3 @@ $$
 
 -   $a^0 = 1 \quad (a \neq 0)$
 -   $a^{-n} = \frac{1}{a^n} \quad (a \neq 0)$
-:::
