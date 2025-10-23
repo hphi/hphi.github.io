@@ -1,9 +1,3 @@
----
-title: "Philippin - Phormelsammlung"
-author: "von und für Jaron, Josua, Samuel, Yael, Marenka & Heiko Philippin"
-output: html_document
----
-
 ## Bruchrechnen
 
 ### 1. Grundbegriffe
@@ -99,3 +93,4 @@ $$
 
 -   $a^0 = 1 \quad (a \neq 0)$
 -   $a^{-n} = \frac{1}{a^n} \quad (a \neq 0)$
+
