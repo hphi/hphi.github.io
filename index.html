@@ -1,33 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhiliWiki Test</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Optional: Link to an external CSS file -->
+  <meta charset="UTF-8"> <!-- Sets the character encoding for the page -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ensures responsive scaling on mobile -->
+  <title>PhiliWiki Test</title> <!-- The title shown in the browser tab -->
+
+  <!-- Optional basic styling to make the rendered Markdown look clean -->
+  <style>
+    body {
+      font-family: Arial, sans-serif; /* Use a readable font */
+      max-width: 800px; /* Limit text width for readability */
+      margin: 40px auto; /* Center the content horizontally with margin */
+      padding: 20px; /* Add spacing inside the content area */
+      background-color: #fafafa; /* Light gray background */
+      color: #333; /* Dark gray text for contrast */
+      line-height: 1.6; /* Increase line spacing for readability */
+    }
+
+    pre {
+      background: #f4f4f4; /* Slightly darker background for code blocks */
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto; /* Allow horizontal scrolling if code is too wide */
+    }
+
+    a {
+      color: #0366d6; /* Blue links similar to GitHub */
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline; /* Underline on hover for clarity */
+    }
+  </style>
 </head>
-
 <body>
-    <header>
-        <h1>Welcome to this Website</h1>
-        <nav>
-            <ul>
-                <li><a href="formelsammlung.md">Phormelsammlung</a></li>
-            </ul>
-        </nav>
-    </header>
+  <!-- Header section -->
+  <h1>Markdown Viewer Example</h1>
+  <p>This page loads and renders a Markdown file using JavaScript.</p>
 
-    <main>
-        <section>
-            <h2>About This Website</h2>
-            <p>Check out my <a href="https://raw.githubusercontent.com/hphi/hphi.github.io/main/formelsammlung.md">Markdown file</a>!</p>
-        </section>
-    </main>
+  <!-- Container where the Markdown content will be displayed -->
+  <div id="content">Loading Markdown...</div>
 
-    <footer>
-        <p>&copy; 2025 hphi. All rights reserved.</p>
-    </footer>
+  <!-- Import the marked.js library from a CDN (content delivery network) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- JavaScript to fetch and render the Markdown -->
+  <script>
+    // Define the path to your Markdown file relative to this HTML file
+    const markdownFile = 'formelsammlung.md';
+    <!-- const markdownFile = 'docs/readme.md'; -->
+
+    // Use the Fetch API to load the Markdown file
+    fetch(markdownFile)
+      .then(response => {
+        // Check if the file was successfully retrieved (status 200 OK)
+        if (!response.ok) {
+          throw new Error('Markdown file not found: ' + markdownFile);
+        }
+        // Convert the file contents to text
+        return response.text();
+      })
+      .then(markdownText => {
+        // Use the 'marked' library to convert Markdown text to HTML
+        const htmlContent = marked.parse(markdownText);
+
+        // Insert the rendered HTML into the page
+        document.getElementById('content').innerHTML = htmlContent;
+      })
+      .catch(error => {
+        // Display an error message if something goes wrong (e.g., file missing)
+        document.getElementById('content').innerHTML =
+          '<p style="color:red;">Error loading Markdown: ' + error.message + '</p>';
+      });
+  </script>
 </body>
-
 </html>
