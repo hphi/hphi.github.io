@@ -3,31 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PhiliWiki Test</title>
+  <title>PhiliWiki</title>
 
   <!-- Include KaTeX CSS for styling mathematical formulas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
 
+ <!-- Optional basic styling to make the rendered Markdown look clean -->
   <style>
     body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 20px;
-      background-color: #fafafa;
-      color: #333;
-      line-height: 1.6;
+      font-family: Arial, sans-serif; /* Use a readable font */
+      max-width: 800px; /* Limit text width for readability */
+      margin: 40px auto; /* Center the content horizontally with margin */
+      padding: 20px; /* Add spacing inside the content area */
+      background-color: #fafafa; /* Light gray background */
+      color: #333; /* Dark gray text for contrast */
+      line-height: 1.6; /* Increase line spacing for readability */
     }
+
     pre {
-      background: #f4f4f4;
+      background: #f4f4f4; /* Slightly darker background for code blocks */
       padding: 10px;
       border-radius: 5px;
-      overflow-x: auto;
+      overflow-x: auto; /* Allow horizontal scrolling if code is too wide */
+    }
+
+    a {
+      color: #0366d6; /* Blue links similar to GitHub */
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline; /* Underline on hover for clarity */
     }
   </style>
 </head>
 <body>
-  <h1>Markdown + Math Viewer</h1>
+  <h1>PhiliWiki - Gesammeltes Wissen der Familie Philippin</h1>
   <div id="content">Loading Markdown...</div>
 
   <!-- Marked.js to render Markdown -->
