@@ -1,0 +1,3 @@
+include:
+ - formelsammlung.md
+ // This tells Jekyll to keep that file in the published site so your JavaScript can fetch it.
