@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PhiliWiki</title>
 
-  <!-- Include KaTeX CSS for styling mathematical formulas -->
+  <!-- Include KaTeX CSS for styling mathematical formulas using the free Content Delivery Network (CDN) jsDelivr -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
 
  <!-- Optional basic styling to make the rendered Markdown look clean -->
@@ -37,11 +37,13 @@
     }
   </style>
 </head>
+  
 <body>
   <h1>PhiliWiki - Gesammeltes Wissen</h1>
   <div id="content">Loading Markdown...</div>
 
-  <!-- Marked.js to render Markdown -->
+  <!-- uses Marked.js to render Markdown to HTML  -->
+  <!-- needs an empty file named .nojekyll in the root of the GithHub repository to disable Jekyll completely -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <!-- KaTeX JavaScript to render math -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
