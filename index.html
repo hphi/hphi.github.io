@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown Docs with Sidebar TOC</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" />
+
+<style>
+/* ---------------- Global ---------------- */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  height: 100vh;
+  color: #333;
+  line-height: 1.6;
+}
+pre {
+  background: #eee;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
+
+/* ---------------- Sidebar ---------------- */
+#sidebar {
+  width: 220px;
+  background: #f4f4f4;
+  border-right: 1px solid #ddd;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+#sidebar h2 {
+  font-size: 18px;
+  margin-top: 0;
+}
+
+#sidebar a {
+  display: block;
+  color: #0366d6;
+  text-decoration: none;
+  margin: 8px 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+#sidebar a:hover {
+  background: #e0e0e0;
+}
+
+#sidebar a.active {
+  background: #0366d6;
+  color: white;
+  font-weight: bold;
+}
+
+/* Nested TOC in sidebar */
+#toc-container {
+  margin-top: 20px;
+}
+
+#toc h3 {
+  font-size: 16px;
+  margin: 10px 0 5px;
+}
+
+#toc a {
+  display: block;
+  color: #0366d6;
+  text-decoration: none;
+  margin: 3px 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+#toc a:hover {
+  background: #e0e0e0;
+}
+
+#toc a.active {
+  background: #0366d6;
+  color: white;
+  font-weight: bold;
+}
+
+#toc a.collapsible::after {
+  content: ' ▶';
+  font-size: 0.8em;
+  color: #555;
+}
+
+#toc a.collapsible.expanded::after {
+  content: ' ▼';
+}
+
+#toc .toc-sublist {
+  list-style-type: none;
+  padding-left: 15px;
+  margin-top: 4px;
+  transition: all 0.3s ease;
+}
+
+/* ---------------- Content ---------------- */
+#content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background: #fafafa;
+}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 700px) {
+  body {
+    flex-direction: column;
+  }
+  #sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="sidebar">
+  <h2>Contents</h2>
+  <a href="#" onclick="loadMarkdown('formelsammlung.md', this)">Formelsammlung</a>
+  <a href="#" onclick="loadMarkdown('markdownCheatsheet.md', this)">Markdown</a>
+  <a href="#" onclick="loadMarkdown('summary.md', this)">Summary</a>
+
+  <div id="toc-container"></div>
+</div>
+
+<div id="content">
+  <h1>Welcome 👋</h1>
+  <p>Select a file from the left sidebar to view its content.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+
+<script>
+async function loadMarkdown(fileName, linkElement) {
+  const contentDiv = document.getElementById('content');
+  contentDiv.innerHTML = `<p><em>Loading ${fileName}...</em></p>`;
+
+  // Highlight sidebar file
+  document.querySelectorAll('#sidebar > a').forEach(a => a.classList.remove('active'));
+  if (linkElement) linkElement.classList.add('active');
+
+  try {
+    const response = await fetch('docs/' + fileName);
+    if (!response.ok) throw new Error(`File not found: ${fileName}`);
+
+    const markdownText = await response.text();
+    contentDiv.innerHTML = marked.parse(markdownText);
+
+    // Render math
+    renderMathInElement(contentDiv, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+
+    // Add heading IDs
+    addHeadingAnchorsAndBacklinks();
+
+    // Generate TOC inside sidebar
+    insertTOC();
+    setupCollapsibleTOC();
+
+    // Scroll-tracking
+    setupScrollTracking();
+    setupSidebarScrollTracking();
+
+    window.location.hash = fileName;
+  } catch (err) {
+    contentDiv.innerHTML = `<p style="color:red;">Error loading Markdown: ${err.message}</p>`;
+  }
+}
+
+function addHeadingAnchorsAndBacklinks() {
+  const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
+  headings.forEach(h => {
+    const id = h.textContent.trim().toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'');
+    h.id = id;
+  });
+}
+
+function insertTOC() {
+  const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
+  const tocContainer = document.getElementById('toc-container');
+  tocContainer.innerHTML = '';
+  if (!headings.length) return;
+
+  const tocDiv = document.createElement('div');
+  tocDiv.id = 'toc';
+  tocDiv.innerHTML = '<h3>Sections</h3>';
+
+  const list = document.createElement('ul');
+  list.style.listStyleType = 'none';
+  list.style.paddingLeft = '0';
+
+  let currentParentLi = null;
+  let subList = null;
+
+  headings.forEach(h => {
+    const level = parseInt(h.tagName.substring(1));
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent.trim();
+    a.classList.add('toc-link');
+    li.appendChild(a);
+
+    if (level === 1) {
+      list.appendChild(li);
+      currentParentLi = li;
+      subList = null;
+    } else if (level > 1) {
+      if (!currentParentLi) { list.appendChild(li); return; }
+      if (!subList) {
+        subList = document.createElement('ul');
+        subList.className = 'toc-sublist';
+        subList.style.listStyleType = 'none';
+        subList.style.paddingLeft = '15px';
+        currentParentLi.appendChild(subList);
+      }
+      subList.appendChild(li);
+    }
+  });
+
+  tocDiv.appendChild(list);
+  tocContainer.appendChild(tocDiv);
+}
+
+function setupCollapsibleTOC() {
+  const mainLinks = document.querySelectorAll('#toc > ul > li > a');
+  mainLinks.forEach(a => {
+    const subList = a.parentElement.querySelector('.toc-sublist');
+    if (!subList) return;
+
+    a.classList.add('collapsible');
+    subList.style.display = 'none';
+
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const alreadyExpanded = a.classList.contains('expanded');
+      document.querySelectorAll('#toc a.collapsible').forEach(link => {
+        link.classList.remove('expanded');
+        const list = link.parentElement.querySelector('.toc-sublist');
+        if (list) list.style.display = 'none';
+      });
+      if (!alreadyExpanded) {
+        a.classList.add('expanded');
+        subList.style.display = 'block';
+      }
+    });
+  });
+}
+
+function setupScrollTracking() {
+  const tocLinks = document.querySelectorAll('#toc a');
+  const headings = Array.from(document.querySelectorAll('#content h1, #content h2, #content h3'));
+  if (!tocLinks.length || !headings.length) return;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      const id = entry.target.getAttribute('id');
+      const link = document.querySelector(`#toc a[href="#${id}"]`);
+      if (entry.isIntersecting && link) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+
+        // Expand parent if collapsed
+        const parent = link.closest('.toc-sublist');
+        if (parent) {
+          parent.style.display = 'block';
+          const mainLink = parent.parentElement.querySelector('a.collapsible');
+          if (mainLink) mainLink.classList.add('expanded');
+        }
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+  headings.forEach(h => observer.observe(h));
+}
+
+function setupSidebarScrollTracking() {
+  const sidebarLinks = document.querySelectorAll('#sidebar > a');
+  const headings = Array.from(document.querySelectorAll('#content h1, #content h2, #content h3'));
+  if (!sidebarLinks.length || !headings.length) return;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const currentFile = window.location.hash.replace('#','');
+        sidebarLinks.forEach(link => link.classList.remove('active'));
+        sidebarLinks.forEach(link => {
+          if (link.textContent.toLowerCase().includes(currentFile.replace('.md','').toLowerCase())) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+  headings.forEach(h => observer.observe(h));
+}
+
+// Auto-load file if URL hash present
+window.addEventListener('load', () => {
+  const hash = window.location.hash.replace('#','');
+  if (hash && hash.endsWith('.md')) {
+    const link = Array.from(document.querySelectorAll('#sidebar > a'))
+      .find(a => a.textContent.toLowerCase().includes(hash.replace('.md','').toLowerCase()));
+    loadMarkdown(hash, link);
+  }
+});
+</script>
