@@ -133,7 +133,7 @@ pre {
 <div id="sidebar">
   <h2>Contents</h2>
   <a href="#" data-file="formelsammlung.md" onclick="loadMarkdown('formelsammlung.md')">Formelsammlung</a>
-  <a href="#" data-file="notes.md" onclick="loadMarkdown('notes.md')">Notes</a>
+  <a href="#" data-file="markdownCheatsheet.md" onclick="loadMarkdown('markdownCheatsheet.md')">Markdown</a>
   <a href="#" data-file="summary.md" onclick="loadMarkdown('summary.md')">Summary</a>
 
   <div id="toc-container"></div>
@@ -273,7 +273,7 @@ function setupCollapsibleTOC() {
   });
 }
 
-// --- Scroll tracking at top of viewport ---
+// --- Top-of-viewport scroll-tracking with collapsible expansion ---
 function setupScrollTracking() {
   const tocLinks = document.querySelectorAll('#toc a');
   const headings = Array.from(document.querySelectorAll('#content h1, #content h2, #content h3'));
@@ -286,23 +286,34 @@ function setupScrollTracking() {
     let currentHeading = headings[0];
 
     for (let h of headings) {
-      if (h.offsetTop - 5 <= scrollTop) {  // small offset
+      if (h.offsetTop - 5 <= scrollTop) {
         currentHeading = h;
       } else {
         break;
       }
     }
 
+    // Remove all active classes
     tocLinks.forEach(a => a.classList.remove('active'));
+
+    // Highlight current heading
     const activeLink = document.querySelector(`#toc a[href="#${currentHeading.id}"]`);
     if (activeLink) activeLink.classList.add('active');
 
-    // Expand parent if collapsible
-    const parent = activeLink.closest('.toc-sublist');
-    if (parent) {
-      parent.style.display = 'block';
-      const mainLink = parent.parentElement.querySelector('a.collapsible');
-      if (mainLink) mainLink.classList.add('expanded');
+    // Collapse all sublists and remove expanded
+    document.querySelectorAll('#toc .toc-sublist').forEach(sub => {
+      sub.style.display = 'none';
+    });
+    document.querySelectorAll('#toc a.collapsible').forEach(link => {
+      link.classList.remove('expanded');
+    });
+
+    // Expand parent if active link is nested
+    const subList = activeLink.closest('.toc-sublist');
+    if (subList) {
+      subList.style.display = 'block';
+      const parentLink = subList.parentElement.querySelector('a.collapsible');
+      if (parentLink) parentLink.classList.add('expanded');
     }
   }
 
