@@ -133,7 +133,7 @@ pre {
 <div id="sidebar">
   <h2>Contents</h2>
   <a href="#" data-file="formelsammlung.md" onclick="loadMarkdown('formelsammlung.md')">Formelsammlung</a>
-  <a href="#" data-file="markdownCheatsheet.md" onclick="loadMarkdown('markdownCheatsheet.md')">Markdown</a>
+  <a href="#" data-file="notes.md" onclick="loadMarkdown('notes.md')">Notes</a>
   <a href="#" data-file="summary.md" onclick="loadMarkdown('summary.md')">Summary</a>
 
   <div id="toc-container"></div>
@@ -153,7 +153,6 @@ async function loadMarkdown(fileName) {
   const contentDiv = document.getElementById('content');
   contentDiv.innerHTML = `<p><em>Loading ${fileName}...</em></p>`;
 
-  // Highlight the correct sidebar file
   highlightSidebarFile(fileName);
 
   try {
@@ -163,7 +162,6 @@ async function loadMarkdown(fileName) {
     const markdownText = await response.text();
     contentDiv.innerHTML = marked.parse(markdownText);
 
-    // Render math
     renderMathInElement(contentDiv, {
       delimiters: [
         { left: "$$", right: "$$", display: true },
@@ -171,15 +169,10 @@ async function loadMarkdown(fileName) {
       ]
     });
 
-    // Add heading IDs
     addHeadingAnchorsAndBacklinks();
-
-    // Generate TOC inside sidebar
     insertTOC();
     setupCollapsibleTOC();
-
-    // Scroll-tracking
-    setupScrollTracking();
+    setupScrollTracking(); // top-of-viewport tracking
 
     window.location.hash = fileName;
   } catch (err) {
@@ -187,7 +180,6 @@ async function loadMarkdown(fileName) {
   }
 }
 
-// Highlight active sidebar link based on data-file
 function highlightSidebarFile(fileName) {
   const sidebarLinks = document.querySelectorAll('#sidebar > a');
   sidebarLinks.forEach(a => a.classList.remove('active'));
@@ -215,7 +207,6 @@ function insertTOC() {
   const tocDiv = document.createElement('div');
   tocDiv.id = 'toc';
 
-  // TOC heading now shows file name
   const activeLink = document.querySelector('#sidebar a.active');
   const fileName = activeLink ? activeLink.textContent.trim() : 'Sections';
   tocDiv.innerHTML = `<h3>${fileName} Sections</h3>`;
@@ -282,30 +273,41 @@ function setupCollapsibleTOC() {
   });
 }
 
+// --- Scroll tracking at top of viewport ---
 function setupScrollTracking() {
   const tocLinks = document.querySelectorAll('#toc a');
   const headings = Array.from(document.querySelectorAll('#content h1, #content h2, #content h3'));
   if (!tocLinks.length || !headings.length) return;
 
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      const id = entry.target.getAttribute('id');
-      const link = document.querySelector(`#toc a[href="#${id}"]`);
-      if (entry.isIntersecting && link) {
-        tocLinks.forEach(a => a.classList.remove('active'));
-        link.classList.add('active');
+  const contentDiv = document.getElementById('content');
 
-        const parent = link.closest('.toc-sublist');
-        if (parent) {
-          parent.style.display = 'block';
-          const mainLink = parent.parentElement.querySelector('a.collapsible');
-          if (mainLink) mainLink.classList.add('expanded');
-        }
+  function onScroll() {
+    const scrollTop = contentDiv.scrollTop;
+    let currentHeading = headings[0];
+
+    for (let h of headings) {
+      if (h.offsetTop - 5 <= scrollTop) {  // small offset
+        currentHeading = h;
+      } else {
+        break;
       }
-    });
-  }, { rootMargin: '-50px 0px -99% 0px', threshold: 0 }); // This triggers the highlight 50px before the heading actually reaches the top.
+    }
 
-  headings.forEach(h => observer.observe(h));
+    tocLinks.forEach(a => a.classList.remove('active'));
+    const activeLink = document.querySelector(`#toc a[href="#${currentHeading.id}"]`);
+    if (activeLink) activeLink.classList.add('active');
+
+    // Expand parent if collapsible
+    const parent = activeLink.closest('.toc-sublist');
+    if (parent) {
+      parent.style.display = 'block';
+      const mainLink = parent.parentElement.querySelector('a.collapsible');
+      if (mainLink) mainLink.classList.add('expanded');
+    }
+  }
+
+  contentDiv.addEventListener('scroll', onScroll);
+  onScroll(); // initial highlight
 }
 
 // Auto-load file if URL hash present
