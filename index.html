@@ -10,9 +10,12 @@
   - Uses Marked.js and KaTeX for rendering,
     - KaTeX renders math (inline $x^2$ and block $$E=mc^2$$).
   - Highlights the active link in the sidebar when it’s selected.
+  - A small Table of Contents appears at the top, listing all headings (h1, h2, h3, …).
+  - Each TOC entry links to that heading.
+  - Each heading also gets a small “back to top” link.
   -->
   
-  <title>Markdown Viewer with Sidebar</title>
+  <title>PhiliWiki</title>
 
   <!-- getting KaTeX for math rendering using jsdelivr -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
@@ -47,6 +50,9 @@
       color: #0366d6;
       text-decoration: none;
       margin: 8px 0;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background 0.2s, color 0.2s;
     }
 
     #sidebar a:hover {
