@@ -133,7 +133,7 @@ pre {
 <div id="sidebar">
   <h2>Contents</h2>
   <a href="#" data-file="formelsammlung.md" onclick="loadMarkdown('formelsammlung.md')">Formelsammlung</a>
-  <a href="#" data-file="markdownCheatsheet.md" onclick="loadMarkdown('notes.md')">Markdown</a>
+  <a href="#" data-file="notes.md" onclick="loadMarkdown('notes.md')">Notes</a>
   <a href="#" data-file="summary.md" onclick="loadMarkdown('summary.md')">Summary</a>
 
   <div id="toc-container"></div>
@@ -209,4 +209,113 @@ function addHeadingAnchorsAndBacklinks() {
 function insertTOC() {
   const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
   const tocContainer = document.getElementById('toc-container');
-  tocContainer.innerHTML
+  tocContainer.innerHTML = '';
+  if (!headings.length) return;
+
+  const tocDiv = document.createElement('div');
+  tocDiv.id = 'toc';
+
+  // TOC heading now shows file name
+  const activeLink = document.querySelector('#sidebar a.active');
+  const fileName = activeLink ? activeLink.textContent.trim() : 'Sections';
+  tocDiv.innerHTML = `<h3>${fileName} Sections</h3>`;
+
+  const list = document.createElement('ul');
+  list.style.listStyleType = 'none';
+  list.style.paddingLeft = '0';
+
+  let currentParentLi = null;
+  let subList = null;
+
+  headings.forEach(h => {
+    const level = parseInt(h.tagName.substring(1));
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent.trim();
+    a.classList.add('toc-link');
+    li.appendChild(a);
+
+    if (level === 1) {
+      list.appendChild(li);
+      currentParentLi = li;
+      subList = null;
+    } else if (level > 1) {
+      if (!currentParentLi) { list.appendChild(li); return; }
+      if (!subList) {
+        subList = document.createElement('ul');
+        subList.className = 'toc-sublist';
+        subList.style.listStyleType = 'none';
+        subList.style.paddingLeft = '15px';
+        currentParentLi.appendChild(subList);
+      }
+      subList.appendChild(li);
+    }
+  });
+
+  tocDiv.appendChild(list);
+  tocContainer.appendChild(tocDiv);
+}
+
+function setupCollapsibleTOC() {
+  const mainLinks = document.querySelectorAll('#toc > ul > li > a');
+  mainLinks.forEach(a => {
+    const subList = a.parentElement.querySelector('.toc-sublist');
+    if (!subList) return;
+
+    a.classList.add('collapsible');
+    subList.style.display = 'none';
+
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const alreadyExpanded = a.classList.contains('expanded');
+      document.querySelectorAll('#toc a.collapsible').forEach(link => {
+        link.classList.remove('expanded');
+        const list = link.parentElement.querySelector('.toc-sublist');
+        if (list) list.style.display = 'none';
+      });
+      if (!alreadyExpanded) {
+        a.classList.add('expanded');
+        subList.style.display = 'block';
+      }
+    });
+  });
+}
+
+function setupScrollTracking() {
+  const tocLinks = document.querySelectorAll('#toc a');
+  const headings = Array.from(document.querySelectorAll('#content h1, #content h2, #content h3'));
+  if (!tocLinks.length || !headings.length) return;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      const id = entry.target.getAttribute('id');
+      const link = document.querySelector(`#toc a[href="#${id}"]`);
+      if (entry.isIntersecting && link) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+
+        const parent = link.closest('.toc-sublist');
+        if (parent) {
+          parent.style.display = 'block';
+          const mainLink = parent.parentElement.querySelector('a.collapsible');
+          if (mainLink) mainLink.classList.add('expanded');
+        }
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+  headings.forEach(h => observer.observe(h));
+}
+
+// Auto-load file if URL hash present
+window.addEventListener('load', () => {
+  const hash = window.location.hash.replace('#','');
+  if (hash && hash.endsWith('.md')) {
+    loadMarkdown(hash);
+  }
+});
+</script>
+
+</body>
+</html>
