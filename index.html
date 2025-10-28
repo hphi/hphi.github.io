@@ -303,7 +303,7 @@ function setupScrollTracking() {
         }
       }
     });
-  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+  }, { rootMargin: '-50px 0px -99% 0px', threshold: 0 }); // This triggers the highlight 50px before the heading actually reaches the top.
 
   headings.forEach(h => observer.observe(h));
 }
