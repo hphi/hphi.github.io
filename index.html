@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 
+  - The sidebar is fixed on the left and lists your Markdown files. -->
+  - Clicking a link loads the file dynamically from the /files/ folder using fetch().
+  - Uses Marked.js and KaTeX for rendering,
+    - KaTeX renders math (inline $x^2$ and block $$E=mc^2$$).
+  - Highlights the active link in the sidebar when it’s selected.
+    -->
+  
+  <title>Markdown Viewer with Sidebar</title>
+
+  <!-- getting KaTeX for math rendering using jsdelivr -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+
+  <style>
+    /* --- Layout --- */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      color: #333;
+    }
+
+    /* Sidebar (table of contents) */
+    #sidebar {
+      width: 220px;
+      background: #f4f4f4;
+      border-right: 1px solid #ddd;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    #sidebar h2 {
+      font-size: 18px;
+      margin-top: 0;
+    }
+
+    #sidebar a {
+      display: block;
+      color: #0366d6;
+      text-decoration: none;
+      margin: 8px 0;
+    }
+
+    #sidebar a:hover {
+      text-decoration: underline;
+    }
+
+    /* Main content area */
+    #content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+      background: #fafafa;
+      line-height: 1.6;
+    }
+
+    pre {
+      background: #eee;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+
+    /* Small screens */
+    @media (max-width: 700px) {
+      body {
+        flex-direction: column;
+      }
+      #sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar with links -->
+  <div id="sidebar">
+    <h2>Contents</h2>
+    <a href="#" onclick="loadMarkdown('formelsammlung.md')">Formelsammlung</a>
+    <a href="#" onclick="loadMarkdown('markdownCheatsheet.md')">Markdown</a>
+    <a href="#" onclick="loadMarkdown('summary.md')">Summary</a>
+  </div>
+
+  <!-- Main area where Markdown will render -->
+  <div id="content">
+    <h1>Welcome 👋</h1>
+    <p>Select a topic from the left to view its content.</p>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+
+  <script>
+    // Load a Markdown file from the /files/ folder
+    function loadMarkdown(fileName) {
+      const filePath = 'files/' + fileName; // Path relative to index.html
+      const contentDiv = document.getElementById('content');
+      contentDiv.innerHTML = '<p><em>Loading ' + fileName + '...</em></p>';
+
+      fetch(filePath)
+        .then(response => {
+          if (!response.ok) throw new Error('File not found: ' + filePath);
+          return response.text();
+        })
+        .then(markdownText => {
+          // Convert Markdown to HTML
+          const htmlContent = marked.parse(markdownText);
+          contentDiv.innerHTML = htmlContent;
+
+          // Render math formulas using KaTeX
+          renderMathInElement(contentDiv, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "$", right: "$", display: false }
+            ]
+          });
+        })
+        .catch(error => {
+          contentDiv.innerHTML = '<p style="color:red;">Error: ' + error.message + '</p>';
+        });
+    }
+  </script>
+
+</body>
+</html>
