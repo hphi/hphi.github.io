@@ -190,10 +190,22 @@ function highlightSidebarFile(fileName) {
   });
 }
 
+// --- Generate unique IDs for headings ---
 function addHeadingAnchorsAndBacklinks() {
   const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
+  const idMap = {};
+
   headings.forEach(h => {
-    const id = h.textContent.trim().toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'');
+    let baseId = h.textContent.trim().toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'');
+    let id = baseId;
+
+    if (idMap[id] !== undefined) {
+      idMap[id] += 1;
+      id = `${baseId}-${idMap[id]}`;
+    } else {
+      idMap[id] = 0;
+    }
+
     h.id = id;
   });
 }
