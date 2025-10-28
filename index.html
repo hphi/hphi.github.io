@@ -132,9 +132,9 @@ pre {
 
 <div id="sidebar">
   <h2>Contents</h2>
-  <a href="#" onclick="loadMarkdown('formelsammlung.md', this)">Formelsammlung</a>
-  <a href="#" onclick="loadMarkdown('markdownCheatsheet.md', this)">Markdown</a>
-  <a href="#" onclick="loadMarkdown('summary.md', this)">Summary</a>
+  <a href="#" onclick="loadMarkdown('formelsammlung.md')">Formelsammlung</a>
+  <a href="#" onclick="loadMarkdown('notes.md')">Notes</a>
+  <a href="#" onclick="loadMarkdown('summary.md')">Summary</a>
 
   <div id="toc-container"></div>
 </div>
@@ -149,13 +149,12 @@ pre {
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
 
 <script>
-async function loadMarkdown(fileName, linkElement) {
+async function loadMarkdown(fileName) {
   const contentDiv = document.getElementById('content');
   contentDiv.innerHTML = `<p><em>Loading ${fileName}...</em></p>`;
 
-  // Highlight sidebar file
-  document.querySelectorAll('#sidebar > a').forEach(a => a.classList.remove('active'));
-  if (linkElement) linkElement.classList.add('active');
+  // Highlight the correct sidebar file
+  highlightSidebarFile(fileName);
 
   try {
     const response = await fetch('docs/' + fileName);
@@ -181,12 +180,22 @@ async function loadMarkdown(fileName, linkElement) {
 
     // Scroll-tracking
     setupScrollTracking();
-    setupSidebarScrollTracking();
 
     window.location.hash = fileName;
   } catch (err) {
     contentDiv.innerHTML = `<p style="color:red;">Error loading Markdown: ${err.message}</p>`;
   }
+}
+
+// Highlight active sidebar link
+function highlightSidebarFile(fileName) {
+  const sidebarLinks = document.querySelectorAll('#sidebar > a');
+  sidebarLinks.forEach(a => a.classList.remove('active'));
+  sidebarLinks.forEach(a => {
+    if (a.textContent.toLowerCase().includes(fileName.replace('.md','').toLowerCase())) {
+      a.classList.add('active');
+    }
+  });
 }
 
 function addHeadingAnchorsAndBacklinks() {
@@ -282,7 +291,6 @@ function setupScrollTracking() {
         tocLinks.forEach(a => a.classList.remove('active'));
         link.classList.add('active');
 
-        // Expand parent if collapsed
         const parent = link.closest('.toc-sublist');
         if (parent) {
           parent.style.display = 'block';
@@ -296,35 +304,14 @@ function setupScrollTracking() {
   headings.forEach(h => observer.observe(h));
 }
 
-function setupSidebarScrollTracking() {
-  const sidebarLinks = document.querySelectorAll('#sidebar > a');
-  const headings = Array.from(document.querySelectorAll('#content h1, #content h2, #content h3'));
-  if (!sidebarLinks.length || !headings.length) return;
-
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const currentFile = window.location.hash.replace('#','');
-        sidebarLinks.forEach(link => link.classList.remove('active'));
-        sidebarLinks.forEach(link => {
-          if (link.textContent.toLowerCase().includes(currentFile.replace('.md','').toLowerCase())) {
-            link.classList.add('active');
-          }
-        });
-      }
-    });
-  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
-
-  headings.forEach(h => observer.observe(h));
-}
-
 // Auto-load file if URL hash present
 window.addEventListener('load', () => {
   const hash = window.location.hash.replace('#','');
   if (hash && hash.endsWith('.md')) {
-    const link = Array.from(document.querySelectorAll('#sidebar > a'))
-      .find(a => a.textContent.toLowerCase().includes(hash.replace('.md','').toLowerCase()));
-    loadMarkdown(hash, link);
+    loadMarkdown(hash);
   }
 });
 </script>
+
+</body>
+</html>
