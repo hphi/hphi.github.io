@@ -154,9 +154,11 @@
 
   <script>
     // JavaScript code to load and render a Markdown file from the /docs/ folder
-    async function loadMarkdown(fileName, linkElement) {
+
+async function loadMarkdown(fileName, linkElement) {
     const filePath = 'docs/' + fileName;
     const contentDiv = document.getElementById('content');
+    console.log(`[loadMarkdown] Start loading: ${filePath}`);
     contentDiv.innerHTML = `<p><em>Loading ${fileName}...</em></p>`;
 
     // Sidebar highlighting
@@ -164,16 +166,22 @@
     if (linkElement) linkElement.classList.add('active');
 
     try {
+      console.log('[loadMarkdown] Fetching file...');
       const response = await fetch(filePath);
+
+      console.log(`[loadMarkdown] Response status: ${response.status}`);
       if (!response.ok) throw new Error(`File not found: ${filePath}`);
 
       const markdownText = await response.text();
+      console.log('[loadMarkdown] Markdown text fetched. Length:', markdownText.length);
 
       // Convert Markdown → HTML
       const htmlContent = marked.parse(markdownText);
+      console.log('[loadMarkdown] Markdown parsed to HTML.');
       contentDiv.innerHTML = htmlContent;
 
       // Render math formulas
+      console.log('[loadMarkdown] Rendering math...');
       renderMathInElement(contentDiv, {
         delimiters: [
           { left: "$$", right: "$$", display: true },
@@ -182,19 +190,26 @@
       });
 
       // Add IDs and backlinks
+      console.log('[loadMarkdown] Adding heading IDs and backlinks...');
       addHeadingAnchorsAndBacklinks();
+
+      // Insert TOC
+      console.log('[loadMarkdown] Inserting Table of Contents...');
       insertTOC();
 
       // Update URL
       window.location.hash = fileName;
 
+      console.log('[loadMarkdown] ✅ Done loading:', fileName);
     } catch (error) {
+      console.error('[loadMarkdown] ❌ Error:', error);
       contentDiv.innerHTML = `<p style="color:red;">Error loading Markdown: ${error.message}</p>`;
     }
   }
 
   function addHeadingAnchorsAndBacklinks() {
     const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
+    console.log(`[addHeadingAnchorsAndBacklinks] Found ${headings.length} headings.`);
     headings.forEach(h => {
       const id = h.textContent.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
       h.id = id;
@@ -208,6 +223,7 @@
 
   function insertTOC() {
     const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
+    console.log(`[insertTOC] Generating TOC for ${headings.length} headings.`);
     if (headings.length === 0) return;
 
     const tocDiv = document.createElement('div');
@@ -232,17 +248,21 @@
 
     const contentDiv = document.getElementById('content');
     contentDiv.prepend(tocDiv);
+
+    console.log('[insertTOC] ✅ TOC inserted.');
   }
 
-  // Auto-load if hash present
+  // Auto-load file if hash present (e.g. #notes.md)
   window.addEventListener('load', () => {
     const hash = window.location.hash.replace('#', '');
+    console.log('[onload] Page loaded. Hash:', hash);
     if (hash && hash.endsWith('.md')) {
       const link = Array.from(document.querySelectorAll('#sidebar a'))
         .find(a => a.textContent.toLowerCase().includes(hash.replace('.md', '').toLowerCase()));
       loadMarkdown(hash, link);
     }
   });
+    
 </script>
 
 </body>
