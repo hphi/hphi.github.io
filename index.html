@@ -105,10 +105,15 @@ pre {
   border-radius: 5px;
 }
 
-#toc h3 {
-  margin-top: 0;
+#toc-container {
+  margin-top: 20px;
 }
 
+#toc h3 {
+  font-size: 16px;
+  margin: 10px 0 5px;
+}
+    
 #toc ul {
   list-style-type: none;
   padding-left: 0;
@@ -122,20 +127,27 @@ pre {
 }
 
 #toc a {
+  display: block;
   color: #0366d6;
   text-decoration: none;
+  margin: 3px 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
 }
 
 #toc a:hover {
-  text-decoration: underline;
+  background: #e0e0e0;
 }
 
 #toc a.active {
   background: #0366d6;
   color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
   font-weight: bold;
+}
+
+#toc .toc-sublist {
+  margin-left: 10px;
 }
 
 #toc a.collapsible::after {
@@ -166,6 +178,16 @@ pre {
 <body>
 
   <!-- Sidebar with links -->
+  <div id="sidebar">
+    <h2>Contents</h2>
+    <a href="#" onclick="loadMarkdown('formelsammlung.md', this)">Formelsammlung</a>
+    <a href="#" onclick="loadMarkdown('notes.md', this)">Notes</a>
+    <a href="#" onclick="loadMarkdown('summary.md', this)">Summary</a>
+    <!-- Nested TOC for the current file -->
+    <div id="toc-container"></div>
+  </div>
+
+  
   <div id="sidebar">
     <h2>Contents</h2>
     <a href="#" onclick="loadMarkdown('formelsammlung.md')">Formelsammlung</a>
@@ -239,13 +261,15 @@ pre {
     });
   }
 
-  function insertTOC() {
+function insertTOC() {
   const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
+  const tocContainer = document.getElementById('toc-container');
+  tocContainer.innerHTML = ''; // clear previous TOC
   if (headings.length === 0) return;
 
   const tocDiv = document.createElement('div');
   tocDiv.id = 'toc';
-  tocDiv.innerHTML = '<h3>Table of Contents</h3>';
+  tocDiv.innerHTML = '<h3>Sections</h3>';
 
   const list = document.createElement('ul');
   list.style.listStyleType = 'none';
@@ -264,12 +288,10 @@ pre {
     li.appendChild(a);
 
     if (level === 1) {
-      // Top-level heading
       list.appendChild(li);
       currentParentLi = li;
       subList = null;
     } else if (level > 1) {
-      // Subheading — if no H1 before, attach directly to top list
       if (!currentParentLi) {
         list.appendChild(li);
         return;
@@ -286,10 +308,10 @@ pre {
   });
 
   tocDiv.appendChild(list);
-  const contentDiv = document.getElementById('content');
-  contentDiv.prepend(tocDiv);
+  tocContainer.appendChild(tocDiv);
 }
 
+  
   function setupCollapsibleTOC() {
     const mainLinks = document.querySelectorAll('#toc > ul > li > a');
     mainLinks.forEach(a => {
