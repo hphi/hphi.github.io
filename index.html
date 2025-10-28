@@ -57,6 +57,13 @@
 
     #sidebar a:hover {
       text-decoration: underline;
+      background: #e0e0e0;
+    }
+
+    #sidebar a.active {
+      background: #0366d6;
+      color: white;
+      font-weight: bold;
     }
 
     /* Main content area */
@@ -75,6 +82,40 @@
       overflow-x: auto;
     }
 
+    #toc {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+
+    #toc h3 {
+      margin-top: 0;
+    }
+
+    #toc a {
+      color: #0366d6;
+      text-decoration: none;
+    }
+
+    #toc a:hover {
+      text-decoration: underline;
+    }
+
+    .back-to-top {
+      display: inline-block;
+      font-size: 0.8em;
+      margin-left: 10px;
+      text-decoration: none;
+      color: #888;
+    }
+
+    .back-to-top:hover {
+      text-decoration: underline;
+    }
+
+    
     /* Small screens */
     @media (max-width: 700px) {
       body {
@@ -87,7 +128,9 @@
       }
     }
   </style>
+
 </head>
+
 <body>
 
   <!-- Sidebar with links -->
@@ -110,12 +153,16 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
 
   <script>
-    // Load a Markdown file from the /docs/ folder
+    // JavaScript code to load a Markdown file from the /docs/ folder
     function loadMarkdown(fileName) {
       const filePath = 'docs/' + fileName; // Path relative to index.html
       const contentDiv = document.getElementById('content');
       contentDiv.innerHTML = '<p><em>Loading ' + fileName + '...</em></p>';
 
+     // Update sidebar highlight
+      document.querySelectorAll('#sidebar a').forEach(a => a.classList.remove('active'));
+      if (linkElement) linkElement.classList.add('active');
+      
       fetch(filePath)
         .then(response => {
           if (!response.ok) throw new Error('File not found: ' + filePath);
@@ -133,11 +180,75 @@
               { left: "$", right: "$", display: false }
             ]
           });
+
+         // Add heading IDs + back links
+          addHeadingAnchorsAndBacklinks();
+
+          // Insert generated table of contents
+          insertTOC();
+
+          // Update hash
+          window.location.hash = fileName;
+          
         })
         .catch(error => {
           contentDiv.innerHTML = '<p style="color:red;">Error: ' + error.message + '</p>';
         });
     }
+
+// Add IDs to headings and "back to top" links
+    function addHeadingAnchorsAndBacklinks() {
+      const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
+      headings.forEach(h => {
+        const id = h.textContent.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+        h.id = id;
+        const backLink = document.createElement('a');
+        backLink.href = '#toc';
+        backLink.textContent = '↑ back to top';
+        backLink.className = 'back-to-top';
+        h.appendChild(backLink);
+      });
+    }
+
+    // Generate and insert table of contents
+    function insertTOC() {
+      const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
+      if (headings.length === 0) return;
+
+      const tocDiv = document.createElement('div');
+      tocDiv.id = 'toc';
+      tocDiv.innerHTML = '<h3>Table of Contents</h3>';
+
+      const list = document.createElement('ul');
+      list.style.listStyleType = 'none';
+      list.style.paddingLeft = '0';
+
+      headings.forEach(h => {
+        const li = document.createElement('li');
+        li.style.marginLeft = h.tagName === 'H2' ? '15px' : h.tagName === 'H3' ? '30px' : '0';
+        const a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.textContent = h.textContent.replace('↑ back to top', '').trim();
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+
+      tocDiv.appendChild(list);
+
+      const contentDiv = document.getElementById('content');
+      contentDiv.prepend(tocDiv);
+    }
+
+    // Auto-load file if URL hash is present (e.g. #notes.md)
+    window.addEventListener('load', () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && hash.endsWith('.md')) {
+        const link = Array.from(document.querySelectorAll('#sidebar a'))
+          .find(a => a.textContent.toLowerCase().includes(hash.replace('.md', '').toLowerCase()));
+        loadMarkdown(hash, link);
+      }
+    });
+    
   </script>
 
 </body>
