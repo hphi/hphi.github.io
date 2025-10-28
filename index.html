@@ -153,103 +153,97 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
 
   <script>
-    // JavaScript code to load a Markdown file from the /docs/ folder
-    function loadMarkdown(fileName) {
-      const filePath = 'docs/' + fileName; // Path relative to index.html
-      const contentDiv = document.getElementById('content');
-      contentDiv.innerHTML = '<p><em>Loading ' + fileName + '...</em></p>';
+    // JavaScript code to load and render a Markdown file from the /docs/ folder
+    async function loadMarkdown(fileName, linkElement) {
+    const filePath = 'docs/' + fileName;
+    const contentDiv = document.getElementById('content');
+    contentDiv.innerHTML = `<p><em>Loading ${fileName}...</em></p>`;
 
-     // Update sidebar highlight
-      document.querySelectorAll('#sidebar a').forEach(a => a.classList.remove('active'));
-      if (linkElement) linkElement.classList.add('active');
-      
-      fetch(filePath)
-        .then(response => {
-          if (!response.ok) throw new Error('File not found: ' + filePath);
-          return response.text();
-        })
-        .then(markdownText => {
-          // Convert Markdown to HTML
-          const htmlContent = marked.parse(markdownText);
-          contentDiv.innerHTML = htmlContent;
+    // Sidebar highlighting
+    document.querySelectorAll('#sidebar a').forEach(a => a.classList.remove('active'));
+    if (linkElement) linkElement.classList.add('active');
 
-          // Render math formulas using KaTeX
-          renderMathInElement(contentDiv, {
-            delimiters: [
-              { left: "$$", right: "$$", display: true },
-              { left: "$", right: "$", display: false }
-            ]
-          });
+    try {
+      const response = await fetch(filePath);
+      if (!response.ok) throw new Error(`File not found: ${filePath}`);
 
-         // Add heading IDs + back links
-          addHeadingAnchorsAndBacklinks();
+      const markdownText = await response.text();
 
-          // Insert generated table of contents
-          insertTOC();
+      // Convert Markdown → HTML
+      const htmlContent = marked.parse(markdownText);
+      contentDiv.innerHTML = htmlContent;
 
-          // Update hash
-          window.location.hash = fileName;
-          
-        })
-        .catch(error => {
-          contentDiv.innerHTML = '<p style="color:red;">Error: ' + error.message + '</p>';
-        });
-    }
-
-// Add IDs to headings and "back to top" links
-    function addHeadingAnchorsAndBacklinks() {
-      const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
-      headings.forEach(h => {
-        const id = h.textContent.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-        h.id = id;
-        const backLink = document.createElement('a');
-        backLink.href = '#toc';
-        backLink.textContent = '↑ back to top';
-        backLink.className = 'back-to-top';
-        h.appendChild(backLink);
-      });
-    }
-
-    // Generate and insert table of contents
-    function insertTOC() {
-      const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
-      if (headings.length === 0) return;
-
-      const tocDiv = document.createElement('div');
-      tocDiv.id = 'toc';
-      tocDiv.innerHTML = '<h3>Table of Contents</h3>';
-
-      const list = document.createElement('ul');
-      list.style.listStyleType = 'none';
-      list.style.paddingLeft = '0';
-
-      headings.forEach(h => {
-        const li = document.createElement('li');
-        li.style.marginLeft = h.tagName === 'H2' ? '15px' : h.tagName === 'H3' ? '30px' : '0';
-        const a = document.createElement('a');
-        a.href = '#' + h.id;
-        a.textContent = h.textContent.replace('↑ back to top', '').trim();
-        li.appendChild(a);
-        list.appendChild(li);
+      // Render math formulas
+      renderMathInElement(contentDiv, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false }
+        ]
       });
 
-      tocDiv.appendChild(list);
+      // Add IDs and backlinks
+      addHeadingAnchorsAndBacklinks();
+      insertTOC();
 
-      const contentDiv = document.getElementById('content');
-      contentDiv.prepend(tocDiv);
+      // Update URL
+      window.location.hash = fileName;
+
+    } catch (error) {
+      contentDiv.innerHTML = `<p style="color:red;">Error loading Markdown: ${error.message}</p>`;
     }
+  }
 
-    // Auto-load file if URL hash is present (e.g. #notes.md)
-    window.addEventListener('load', () => {
-      const hash = window.location.hash.replace('#', '');
-      if (hash && hash.endsWith('.md')) {
-        const link = Array.from(document.querySelectorAll('#sidebar a'))
-          .find(a => a.textContent.toLowerCase().includes(hash.replace('.md', '').toLowerCase()));
-        loadMarkdown(hash, link);
-      }
+  function addHeadingAnchorsAndBacklinks() {
+    const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
+    headings.forEach(h => {
+      const id = h.textContent.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+      h.id = id;
+      const backLink = document.createElement('a');
+      backLink.href = '#toc';
+      backLink.textContent = '↑ back to top';
+      backLink.className = 'back-to-top';
+      h.appendChild(backLink);
     });
-    
-  </script>
+  }
+
+  function insertTOC() {
+    const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
+    if (headings.length === 0) return;
+
+    const tocDiv = document.createElement('div');
+    tocDiv.id = 'toc';
+    tocDiv.innerHTML = '<h3>Table of Contents</h3>';
+
+    const list = document.createElement('ul');
+    list.style.listStyleType = 'none';
+    list.style.paddingLeft = '0';
+
+    headings.forEach(h => {
+      const li = document.createElement('li');
+      li.style.marginLeft = h.tagName === 'H2' ? '15px' : h.tagName === 'H3' ? '30px' : '0';
+      const a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent.replace('↑ back to top', '').trim();
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+
+    tocDiv.appendChild(list);
+
+    const contentDiv = document.getElementById('content');
+    contentDiv.prepend(tocDiv);
+  }
+
+  // Auto-load if hash present
+  window.addEventListener('load', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && hash.endsWith('.md')) {
+      const link = Array.from(document.querySelectorAll('#sidebar a'))
+        .find(a => a.textContent.toLowerCase().includes(hash.replace('.md', '').toLowerCase()));
+      loadMarkdown(hash, link);
+    }
+  });
+</script>
 
 </body>
 </html>
