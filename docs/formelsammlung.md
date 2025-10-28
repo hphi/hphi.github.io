@@ -1,3 +1,5 @@
+# Phormelsammlung
+
 ## Bruchrechnen
 
 ### 1. Grundbegriffe
@@ -93,4 +95,5 @@ $$
 
 -   $a^0 = 1 \quad (a \neq 0)$
 -   $a^{-n} = \frac{1}{a^n} \quad (a \neq 0)$
+
 
