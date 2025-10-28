@@ -56,7 +56,7 @@
     }
 
     #sidebar a:hover {
-      text-decoration: underline;
+      /* text-decoration: underline; */
       background: #e0e0e0;
     }
 
@@ -148,17 +148,15 @@
   </div>
 
   <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
 
-  <script>
-    // JavaScript code to load and render a Markdown file from the /docs/ folder
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
 
-async function loadMarkdown(fileName, linkElement) {
+<script>
+  async function loadMarkdown(fileName, linkElement) {
     const filePath = 'docs/' + fileName;
     const contentDiv = document.getElementById('content');
-    console.log(`[loadMarkdown] Start loading: ${filePath}`);
     contentDiv.innerHTML = `<p><em>Loading ${fileName}...</em></p>`;
 
     // Sidebar highlighting
@@ -166,22 +164,14 @@ async function loadMarkdown(fileName, linkElement) {
     if (linkElement) linkElement.classList.add('active');
 
     try {
-      console.log('[loadMarkdown] Fetching file...');
       const response = await fetch(filePath);
-
-      console.log(`[loadMarkdown] Response status: ${response.status}`);
       if (!response.ok) throw new Error(`File not found: ${filePath}`);
 
       const markdownText = await response.text();
-      console.log('[loadMarkdown] Markdown text fetched. Length:', markdownText.length);
-
-      // Convert Markdown → HTML
       const htmlContent = marked.parse(markdownText);
-      console.log('[loadMarkdown] Markdown parsed to HTML.');
       contentDiv.innerHTML = htmlContent;
 
-      // Render math formulas
-      console.log('[loadMarkdown] Rendering math...');
+      // Render math
       renderMathInElement(contentDiv, {
         delimiters: [
           { left: "$$", right: "$$", display: true },
@@ -189,27 +179,22 @@ async function loadMarkdown(fileName, linkElement) {
         ]
       });
 
-      // Add IDs and backlinks
-      console.log('[loadMarkdown] Adding heading IDs and backlinks...');
+      // Add heading anchors + TOC
       addHeadingAnchorsAndBacklinks();
-
-      // Insert TOC
-      console.log('[loadMarkdown] Inserting Table of Contents...');
       insertTOC();
 
-      // Update URL
-      window.location.hash = fileName;
+      // Start scroll tracking
+      setupScrollTracking();
 
-      console.log('[loadMarkdown] ✅ Done loading:', fileName);
+      // Update URL hash
+      window.location.hash = fileName;
     } catch (error) {
-      console.error('[loadMarkdown] ❌ Error:', error);
       contentDiv.innerHTML = `<p style="color:red;">Error loading Markdown: ${error.message}</p>`;
     }
   }
 
   function addHeadingAnchorsAndBacklinks() {
     const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
-    console.log(`[addHeadingAnchorsAndBacklinks] Found ${headings.length} headings.`);
     headings.forEach(h => {
       const id = h.textContent.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
       h.id = id;
@@ -223,7 +208,6 @@ async function loadMarkdown(fileName, linkElement) {
 
   function insertTOC() {
     const headings = document.querySelectorAll('#content h1, #content h2, #content h3');
-    console.log(`[insertTOC] Generating TOC for ${headings.length} headings.`);
     if (headings.length === 0) return;
 
     const tocDiv = document.createElement('div');
@@ -240,6 +224,7 @@ async function loadMarkdown(fileName, linkElement) {
       const a = document.createElement('a');
       a.href = '#' + h.id;
       a.textContent = h.textContent.replace('↑ back to top', '').trim();
+      a.classList.add('toc-link');
       li.appendChild(a);
       list.appendChild(li);
     });
@@ -248,20 +233,41 @@ async function loadMarkdown(fileName, linkElement) {
 
     const contentDiv = document.getElementById('content');
     contentDiv.prepend(tocDiv);
+  }
 
-    console.log('[insertTOC] ✅ TOC inserted.');
+  // --- Scroll Tracking ---
+  function setupScrollTracking() {
+    const tocLinks = document.querySelectorAll('#toc a');
+    const headings = Array.from(document.querySelectorAll('#content h1, #content h2, #content h3'));
+
+    if (!tocLinks.length || !headings.length) return;
+
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('id');
+          const link = document.querySelector(`#toc a[href="#${id}"]`);
+          if (entry.isIntersecting) {
+            tocLinks.forEach(a => a.classList.remove('active'));
+            if (link) link.classList.add('active');
+          }
+        });
+      },
+      { rootMargin: '-40% 0px -55% 0px', threshold: 0 }
+    );
+
+    headings.forEach(h => observer.observe(h));
   }
 
   // Auto-load file if hash present (e.g. #notes.md)
   window.addEventListener('load', () => {
     const hash = window.location.hash.replace('#', '');
-    console.log('[onload] Page loaded. Hash:', hash);
     if (hash && hash.endsWith('.md')) {
       const link = Array.from(document.querySelectorAll('#sidebar a'))
         .find(a => a.textContent.toLowerCase().includes(hash.replace('.md', '').toLowerCase()));
       loadMarkdown(hash, link);
     }
-  });
+  }); 
     
 </script>
 
