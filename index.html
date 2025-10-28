@@ -24,147 +24,142 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
 
   <style>
-    /* --- Layout --- */
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      display: flex;
-      height: 100vh;
-      color: #333;
-    }
+  /* ---------------- Global ---------------- */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  height: 100vh;
+  color: #333;
+  line-height: 1.6;
+}
 
-    /* Sidebar (table of contents) */
-    #sidebar {
-      width: 220px;
-      background: #f4f4f4;
-      border-right: 1px solid #ddd;
-      padding: 20px;
-      box-sizing: border-box;
-      overflow-y: auto;
-    }
+pre {
+  background: #eee;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
 
-    #sidebar h2 {
-      font-size: 18px;
-      margin-top: 0;
-    }
+/* ---------------- Sidebar ---------------- */
+#sidebar {
+  width: 220px;
+  background: #f4f4f4;
+  border-right: 1px solid #ddd;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
 
-    #sidebar a {
-      display: block;
-      color: #0366d6;
-      text-decoration: none;
-      margin: 8px 0;
-      padding: 4px 8px;
-      border-radius: 4px;
-      transition: background 0.2s, color 0.2s;
-    }
+#sidebar h2 {
+  font-size: 18px;
+  margin-top: 0;
+}
 
-    #sidebar a:hover {
-      /* text-decoration: underline; */
-      background: #e0e0e0;
-    }
+#sidebar a {
+  display: block;
+  color: #0366d6;
+  text-decoration: none;
+  margin: 8px 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
 
-    #sidebar a.active {
-      background: #0366d6;
-      color: white;
-      font-weight: bold;
-    }
+#sidebar a:hover {
+  background: #e0e0e0;
+}
 
-    /* Main content area */
-    #content {
-      flex: 1;
-      padding: 30px;
-      overflow-y: auto;
-      background: #fafafa;
-      line-height: 1.6;
-    }
+#sidebar a.active {
+  background: #0366d6;
+  color: white;
+  font-weight: bold;
+}
 
-    pre {
-      background: #eee;
-      padding: 10px;
-      border-radius: 5px;
-      overflow-x: auto;
-    }
+/* ---------------- Content ---------------- */
+#content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background: #fafafa;
+}
 
-    #toc {
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 10px;
-      margin-bottom: 20px;
-      border-radius: 5px;
-    }
+.back-to-top {
+  display: inline-block;
+  font-size: 0.8em;
+  margin-left: 10px;
+  text-decoration: none;
+  color: #888;
+}
 
-    #toc h3 {
-      margin-top: 0;
-    }
+.back-to-top:hover {
+  text-decoration: underline;
+}
 
-    #toc a {
-      color: #0366d6;
-      text-decoration: none;
-    }
+/* ---------------- Table of Contents ---------------- */
+#toc {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+}
 
-    #toc a:hover {
-      text-decoration: underline;
-    }
+#toc h3 {
+  margin-top: 0;
+}
 
-    /* Highlight current section in the TOC */
-    #toc a.active {
-    background: #0366d6;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-     }
+#toc ul {
+  list-style-type: none;
+  padding-left: 0;
+}
 
-    /* TOC scroll tracking + collapsible behavior */
-    #toc a.active {
-    background: #0366d6;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-    }
+#toc .toc-sublist {
+  list-style-type: none;
+  padding-left: 15px;
+  margin-top: 4px;
+  transition: all 0.3s ease;
+}
 
-    #toc a.collapsible::after {
-    content: ' ▶';
-    font-size: 0.8em;
-    color: #555;
-    }
+#toc a {
+  color: #0366d6;
+  text-decoration: none;
+}
 
-    #toc a.collapsible.expanded::after {
-    content: ' ▼';
-    }
+#toc a:hover {
+  text-decoration: underline;
+}
 
-    #toc .toc-sublist {
-    margin-top: 4px;
-    transition: all 0.3s ease;
-    }
-    
-    .back-to-top {
-      display: inline-block;
-      font-size: 0.8em;
-      margin-left: 10px;
-      text-decoration: none;
-      color: #888;
-    }
+#toc a.active {
+  background: #0366d6;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
 
-    .back-to-top:hover {
-      text-decoration: underline;
-    }
+#toc a.collapsible::after {
+  content: ' ▶';
+  font-size: 0.8em;
+  color: #555;
+}
 
-    
-    /* Small screens */
-    @media (max-width: 700px) {
-      body {
-        flex-direction: column;
-      }
-      #sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid #ddd;
-      }
-    }
+#toc a.collapsible.expanded::after {
+  content: ' ▼';
+}
 
-</style>
+/* ---------------- Responsive ---------------- */
+@media (max-width: 700px) {
+  body {
+    flex-direction: column;
+  }
+  #sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+}
+  </style>
 
 </head>
 
